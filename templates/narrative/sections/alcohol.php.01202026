@@ -1,0 +1,158 @@
+<h2>Use of Alcohol</h2>
+<?php
+// ------------------------------------------------------------------
+// Paragraph 1: Alcohol Consumption (introduce applicant once)
+// ------------------------------------------------------------------
+$alcohol_consumption_raw = (string) $val( '296', '' );
+$alcohol_consumption     = trim( $alcohol_consumption_raw );
+
+if ( $alcohol_consumption !== '' ) {
+	$para( $A . ' describes their alcohol use as "' . $alcohol_consumption . '".' );
+}
+
+// Within this section, after the first paragraph, use a generic subject.
+$section_subject = 'The applicant';
+
+// ------------------------------------------------------------------
+// Yes/No map (polished language)
+// ------------------------------------------------------------------
+$alcohol_yn = [
+	297 => [
+		'The applicant reports considering themselves as having an alcohol problem.',
+		'The applicant reports they do not consider themselves as having an alcohol problem.',
+	],
+	298 => [
+		'The applicant reports others say they have a problem with alcohol.',
+		'The applicant reports others do not say they have a problem with alcohol.',
+	],
+	299 => [
+		'The applicant reports operating a motor vehicle under the influence of alcohol.',
+		'The applicant reports they have not operated a motor vehicle under the influence of alcohol.',
+	],
+	300 => [
+		'The applicant reports operating a motor vehicle while “buzzed.”',
+		'The applicant reports they have not operated a motor vehicle while “buzzed.”',
+	],
+	301 => [
+		'The applicant reports committing crimes while under the influence of alcohol.',
+		'The applicant reports they have not committed crimes while under the influence of alcohol.',
+	],
+	302 => [
+		'The applicant reports alcohol use interfering with work duties or activities.',
+		'The applicant reports alcohol use has not interfered with work duties or activities.',
+	],
+	303 => [
+		'The applicant reports consuming alcohol while at work.',
+		'The applicant reports they have not consumed alcohol while at work.',
+	],
+	304 => [
+		'The applicant reports alcohol use interfering with school activities.',
+		'The applicant reports alcohol use has not interfered with school activities.',
+	],
+	305 => [
+		'The applicant reports arriving at work intoxicated or hung over.',
+		'The applicant reports they have not arrived at work intoxicated or hung over.',
+	],
+	306 => [
+		'The applicant reports consuming alcohol while underage.',
+		'The applicant reports they have not consumed alcohol while underage.',
+	],
+	307 => [
+		'The applicant reports providing an alcoholic beverage to a minor.',
+		'The applicant reports they have not provided an alcoholic beverage to a minor.',
+	],
+];
+
+// ------------------------------------------------------------------
+// Collect answers
+// ------------------------------------------------------------------
+$alcohol_yes = [];
+$alcohol_no  = [];
+
+foreach ( $alcohol_yn as $fid => $texts ) {
+
+	$ans = $yn( $fid );
+	if ( $ans === '' ) {
+		continue;
+	}
+
+	$yes_phrase = preg_replace( '/^The applicant reports\s+/i', '', (string) $texts[0] );
+	$no_phrase  = preg_replace( '/^The applicant reports\s+/i', '', (string) $texts[1] );
+
+	$yes_phrase = rtrim( trim( $yes_phrase ), '.' );
+	$no_phrase  = rtrim( trim( $no_phrase ), '.' );
+
+	if ( $ans === 'Yes' && $yes_phrase !== '' ) {
+		$alcohol_yes[] = $yes_phrase;
+	} elseif ( $ans === 'No' && $no_phrase !== '' ) {
+		$alcohol_no[] = $no_phrase;
+	}
+}
+
+// ------------------------------------------------------------------
+// NEGATIVE COMPRESSION RULE
+// If there are NO "Yes" answers, don't print the full checklist.
+// Instead, output one tight denial statement.
+// ------------------------------------------------------------------
+$has_any_yes = ! empty( $alcohol_yes );
+
+// Optional: treat "none" (or similar) as reinforcing the negative summary.
+$consumption_none = ( $alcohol_consumption !== '' ) && preg_match( '/^(none|no|n\/a|na|does not drink|doesn\'t drink)$/i', $alcohol_consumption );
+
+if ( ! $has_any_yes ) {
+	// If you already printed "alcohol use as 'none'", you can keep the next line shorter.
+	if ( $consumption_none ) {
+		$para( $section_subject . ' denies any alcohol-related problems, misuse, or alcohol-related misconduct.' );
+	} else {
+		$para( $section_subject . ' denies any alcohol-related problems, misuse, or alcohol-related misconduct.' );
+	}
+
+	// Comments (Explanation from core-values)
+	$para_comment( $alcohol_explain, 'Regarding alcohol history, ' . $A . ' noted:' );
+	$para_comment( $exam_alcohol_explain, 'Examiner noted:' );
+
+	// Stop here so we don't also output the long checklist.
+	return;
+}
+
+// ------------------------------------------------------------------
+// Otherwise, enumerate (because at least one "Yes" exists)
+// ------------------------------------------------------------------
+$parts = [];
+
+// Yes responses
+if ( ! empty( $alcohol_yes ) ) {
+	if ( count( $alcohol_yes ) === 1 ) {
+		$parts[] = $section_subject . ' reports ' . $alcohol_yes[0] . '.';
+	} else {
+		$tmp  = $alcohol_yes;
+		$last = array_pop( $tmp );
+		$list = ( count( $tmp ) > 1 )
+			? implode( ', ', $tmp ) . ', and ' . $last
+			: $tmp[0] . ' and ' . $last;
+
+		$parts[] = $section_subject . ' reports ' . $list . '.';
+	}
+}
+
+// No responses (only include if you still want them when a Yes exists)
+if ( ! empty( $alcohol_no ) ) {
+	$tmp  = $alcohol_no;
+	$last = array_pop( $tmp );
+	$list = empty( $tmp )
+		? $last
+		: ( count( $tmp ) > 1 ? implode( ', ', $tmp ) . ', and ' . $last : $tmp[0] . ' and ' . $last );
+
+	$parts[] = 'Additionally, ' . $list . '.';
+}
+
+if ( ! empty( $parts ) ) {
+	$para( implode( ' ', $parts ) );
+}
+
+// ------------------------------------------------------------------
+// COMMENTS (Explanation from core-values)
+// ------------------------------------------------------------------
+$para_comment( $alcohol_explain, 'Regarding alcohol history, ' . $A . ' noted:' );
+$para_comment( $exam_alcohol_explain, 'Examiner noted:' );
+?>

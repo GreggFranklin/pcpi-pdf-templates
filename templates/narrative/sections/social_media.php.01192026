@@ -1,0 +1,150 @@
+<h2>Social Media</h2>
+<?php
+/**
+ * Social Media – Narrative Report Style
+ * - Single subject (Applicant {Name})
+ * - Gerund-based clauses
+ * - Includes platform list (Field 580)
+ * - Oxford comma handling
+ * - CA Labor Code §980 compliant
+ */
+
+// Gate question: current social media use
+$ans_213 = $yn( 213 );
+
+// ------------------------------------------------------------
+// If applicant does NOT use social media
+// ------------------------------------------------------------
+if ( $ans_213 === 'No' ) {
+
+	$para( $A . ' reports not currently using social media.' );
+
+	$para_comment(
+		$social_comments,
+		'Regarding social media, ' . $A . ' noted:'
+	);
+	$para_comment( $exam_social_comments, 'Examiner noted:' );
+
+	return;
+}
+
+// ------------------------------------------------------------
+// Normalize Social Media Platforms (Checkbox field 580)
+// ------------------------------------------------------------
+$platforms_value = $val( '580', '' );
+$platform_items  = [];
+
+if ( is_array( $platforms_value ) ) {
+	$platform_items = $platforms_value;
+} else {
+	$s = trim( (string) $platforms_value );
+
+	// Normalize separators
+	$s = str_replace( [ "\r\n", "\n", "\r", '|' ], ',', $s );
+	$parts = preg_split( '/\s*,\s*/', $s, -1, PREG_SPLIT_NO_EMPTY );
+
+	// Fallback if GF returns space-separated values
+	if ( count( $parts ) === 1 && strpos( $parts[0], ' ' ) !== false ) {
+		$parts = preg_split( '/\s+/', $parts[0], -1, PREG_SPLIT_NO_EMPTY );
+	}
+
+	$platform_items = $parts;
+}
+
+// Clean + unique
+$platform_items = array_values(
+	array_unique(
+		array_filter(
+			array_map( 'trim', (array) $platform_items )
+		)
+	)
+);
+
+$platforms = ! empty( $platform_items )
+	? $oxford_join( $platform_items, 'and' )
+	: 'social media';
+
+// ------------------------------------------------------------
+// Build narrative clauses (gerund-based)
+// ------------------------------------------------------------
+$clauses = [];
+
+// Opening clause (platform-aware)
+$clauses[] = 'currently using ' . $platforms;
+
+// Accounts in own name/email
+$ans_214 = $yn( 214 );
+if ( $ans_214 === 'Yes' ) {
+	$clauses[] = 'maintaining accounts registered in their name and/or email address';
+} elseif ( $ans_214 === 'No' ) {
+	$clauses[] = 'not maintaining accounts registered in their name and/or email address';
+}
+
+// Accounts in someone else’s name
+$ans_217 = $yn( 217 );
+if ( $ans_217 === 'Yes' ) {
+	$clauses[] = 'utilizing accounts registered in someone else’s name and/or email address';
+} elseif ( $ans_217 === 'No' ) {
+	$clauses[] = 'not utilizing social media accounts registered to others';
+}
+
+// Interview review
+$clauses[] = 'having prior social media postings reviewed during the interview';
+
+// Offensive / derogatory content
+$ans_216 = $yn( 216 );
+if ( $ans_216 === 'Yes' ) {
+	$clauses[] = 'having posted racist, prejudiced, offensive, or derogatory content';
+} elseif ( $ans_216 === 'No' ) {
+	$clauses[] = 'denying the posting of racist, prejudiced, offensive, or derogatory content';
+}
+
+// Misinterpretable content
+$ans_218 = $yn( 218 );
+if ( $ans_218 === 'Yes' ) {
+	$clauses[] = 'having posted content that could be misinterpreted as racist, prejudiced, offensive, or derogatory';
+} elseif ( $ans_218 === 'No' ) {
+	$clauses[] = 'denying the posting of content believed to be misinterpretable as racist, prejudiced, offensive, or derogatory';
+}
+
+// Delayed posts
+$ans_219 = $yn( 219 );
+if ( $ans_219 === 'Yes' ) {
+	$clauses[] = 'delaying posts since beginning the application process due to concerns they may be viewed as inappropriate or disqualifying';
+} elseif ( $ans_219 === 'No' ) {
+	$clauses[] = 'not delaying posts since beginning the application process for that reason';
+}
+
+// Disqualifying content
+$ans_220 = $yn( 220 );
+if ( $ans_220 === 'Yes' ) {
+	$clauses[] = 'having posted content believed to be potentially disqualifying';
+} elseif ( $ans_220 === 'No' ) {
+	$clauses[] = 'denying posting content believed to be disqualifying';
+}
+
+// ------------------------------------------------------------
+// Oxford-join clauses and output narrative
+// ------------------------------------------------------------
+$sentence = $oxford_join( $clauses, 'and' );
+
+$para( $A . ' ' . $sentence . '.' );
+
+// ------------------------------------------------------------
+// CA Labor Code §980 disclosure
+// ------------------------------------------------------------
+$para_html(
+	'California Labor Code §980 prohibits an employer from requiring or requesting an employee or applicant for employment ' .
+	'to disclose a username or password for the purpose of accessing personal social media. ' .
+	'Accordingly, I did not request ' . esc_html( $A ) . ' to provide usernames or passwords for any social media accounts.'
+);
+
+// ------------------------------------------------------------
+// Comments
+// ------------------------------------------------------------
+$para_comment(
+	$social_comments,
+	'Regarding social media, ' . $A . ' noted:'
+);
+$para_comment( $exam_social_comments, 'Examiner noted:' );
+?>

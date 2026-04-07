@@ -1,0 +1,142 @@
+<h2>Employment History</h2>
+<?php
+/* ---------------------------------------------------------
+ * Late for Work (approx. last 12 months) — build a clause
+ * Field: 269
+ * --------------------------------------------------------- */
+$late_raw = trim( (string) $val( '269', '' ) );
+$late_lc  = strtolower( $late_raw );
+
+$is_emptyish =
+	$late_raw === '' ||
+	strpos( $late_lc, 'select' ) !== false ||
+	in_array( $late_lc, [ '-', 'n/a', 'na' ], true );
+
+$late_clause = '';
+
+if ( ! $is_emptyish ) {
+
+	if ( in_array( $late_lc, [ '0', 'none', 'never', 'no' ], true ) ) {
+
+		$late_clause = 'reports no instances of being late for work in the last 12 months';
+
+	} else {
+
+		// If they entered "2 times" already
+		if ( preg_match( '/\btime(s)?\b/i', $late_raw ) ) {
+
+			$late_clause = 'reports being late for work approximately ' . $late_raw . ' in the last 12 months';
+
+		} elseif ( is_numeric( $late_raw ) ) {
+
+			$n = (int) $late_raw;
+			if ( $n > 0 ) {
+				$late_clause = 'reports being late for work approximately ' . $n . ' ' . ( $n === 1 ? 'time' : 'times' ) . ' in the last 12 months';
+			}
+
+		} else {
+
+			$late_clause = 'reports being late for work approximately ' . $late_raw . ' in the last 12 months';
+		}
+	}
+}
+
+/* ---------------------------------------------------------
+ * Employment History (Nested Form) — collect items
+ * Parent field: 270
+ * Child keys: Employer=1, Job Title/Assignment=3, Length=4, Code=6
+ * --------------------------------------------------------- */
+$emp_field_employer = '1';
+$emp_field_job      = '3';
+$emp_field_length   = '4';
+$emp_field_code     = '6';
+
+$employment_child_form_id = 0; // set if you want to enforce a specific child form ID
+
+$code_map = [
+	'L' => 'Not listed in the previous background packet',
+	'T' => 'Terminated',
+	'R' => 'Disciplinary action',
+	'U' => 'Unsatisfactory',
+];
+
+$employment_items = [];
+
+$collector = function( array $child ) use (
+	&$employment_items,
+	$child_val,
+	$emp_field_employer,
+	$emp_field_job,
+	$emp_field_length,
+	$emp_field_code,
+	$code_map
+) {
+
+	$employer = trim( (string) $child_val( $child, $emp_field_employer ) );
+	$job      = trim( (string) $child_val( $child, $emp_field_job ) );
+	$length   = trim( (string) $child_val( $child, $emp_field_length ) );
+	$code_raw = trim( (string) $child_val( $child, $emp_field_code ) );
+
+	if ( $employer === '' && $job === '' && $length === '' && $code_raw === '' ) {
+		return '';
+	}
+
+	$code_letter = strtoupper( substr( $code_raw, 0, 1 ) );
+	$code_label  = $code_map[ $code_letter ] ?? '';
+
+	// Build "Employer — Job Title" (clean, report-like)
+	if ( $employer !== '' && $job !== '' ) {
+		$title = $employer . ' — ' . $job;
+	} elseif ( $employer !== '' ) {
+		$title = $employer;
+	} elseif ( $job !== '' ) {
+		$title = $job;
+	} else {
+		$title = 'Employment';
+	}
+
+	$bits = [ $title ];
+
+	if ( $length !== '' ) {
+		$bits[] = $length;
+	}
+
+	if ( $code_label !== '' ) {
+		$bits[] = $code_label;
+	}
+
+	$employment_items[] = implode( ', ', $bits );
+
+	return '';
+};
+
+$para_nested( $entry, 270, $collector, $employment_child_form_id );
+
+$employment_items = array_values( array_filter( array_map( 'trim', $employment_items ) ) );
+
+/* ---------------------------------------------------------
+ * Narrative Output
+ * - Use $A once (first sentence), then "The applicant" if a second sentence is needed.
+ * --------------------------------------------------------- */
+$sentences = [];
+
+// Sentence 1 (always): employment list (or lack thereof)
+if ( ! empty( $employment_items ) ) {
+	$sentences[] = $A . ' reported the following employment history: ' . $oxford_join( $employment_items, 'and' ) . '.';
+} else {
+	$sentences[] = $A . ' did not list any prior employment history.';
+}
+
+// Sentence 2 (optional): lateness
+if ( $late_clause !== '' ) {
+	$sentences[] = 'The applicant ' . $late_clause . '.';
+}
+
+// Output as one paragraph (old-report feel)
+$para( implode( ' ', array_values( array_filter( array_map( 'trim', $sentences ) ) ) ) );
+
+/* ---------------------------------------------------------
+ * Examiner comments (Field 642 via Admin Label)
+ * --------------------------------------------------------- */
+$para_comment( $exam_employment_explain, 'Examiner noted:' );
+?>

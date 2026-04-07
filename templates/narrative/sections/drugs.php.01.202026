@@ -1,0 +1,147 @@
+<h2>Use of Illegal Drugs and Narcotics</h2>
+
+<?php
+$drug_yes_only_map = [
+	309 => [ 'Adderall (not prescribed)', 310 ],
+	311 => [ 'other prescription drugs not prescribed to the applicant', 314 ],
+	349 => [ 'cocaine', 350 ],
+	352 => [ 'crack cocaine', 353 ],
+	355 => [ 'speed (uppers)', 356 ],
+	357 => [ 'methamphetamine (crank)', 358 ],
+	359 => [ 'barbiturates (downers)', 360 ],
+	361 => [ 'heroin', 362 ],
+	363 => [ 'opium', 364 ],
+	365 => [ 'codeine (not prescribed)', 366 ],
+	367 => [ 'Demerol (not prescribed)', 368 ],
+	369 => [ 'morphine (not prescribed)', 370 ],
+	371 => [ 'Valium (not prescribed)', 372 ],
+	373 => [ 'LSD', 374 ],
+	375 => [ 'psychedelic mushrooms', 376 ],
+	377 => [ 'mescaline', 378 ],
+	379 => [ 'PCP (Angel Dust)', 380 ],
+	381 => [ 'Quaaludes', 382 ],
+	383 => [ 'sniffing glue or paint', 384 ],
+];
+
+// ------------------------------------------------------------------
+// 1) BUILD SUMMARY LIST (Yes-only) — LAST USE (pretty dates, no date/dates)
+// ------------------------------------------------------------------
+$used_drugs = [];
+
+foreach ( $drug_yes_only_map as $yn_id => $cfg ) {
+	[ $label, $date_id ] = $cfg;
+
+	if ( $yn( $yn_id ) !== 'Yes' ) {
+		continue;
+	}
+
+	$item = $label;
+
+	if ( $date_id !== null ) {
+
+		// These are LIST fields → use list helpers + pretty formatting
+		$date_str = $list_field_dates_pretty( $date_id, 'F d, Y' );
+
+		if ( $date_str !== '' ) {
+			$item .= " (last use approximately {$date_str})";
+		}
+	}
+
+	$used_drugs[] = $item;
+}
+
+// ------------------------------------------------------------------
+// 2) “OTHER DRUGS” (Nested Form 315)
+// ------------------------------------------------------------------
+$other_drugs_items = [];
+
+$collector = function( array $child ) use ( &$other_drugs_items, $child_val, $fmt_date ) {
+
+	$drug = trim( (string) $child_val( $child, '1' ) );
+	$date = trim( (string) $child_val( $child, '3' ) );
+
+	if ( $drug === '' && $date === '' ) {
+		return '';
+	}
+
+	if ( $date !== '' ) {
+		$date = $fmt_date( $date, 'F d, Y' );
+		$other_drugs_items[] = "{$drug} (last use approximately {$date})";
+	} else {
+		$other_drugs_items[] = $drug;
+	}
+
+	return '';
+};
+
+$para_nested( $entry, 315, $collector, 14 );
+
+$other_drugs_items = array_values( array_filter( array_map( 'trim', $other_drugs_items ) ) );
+
+// ------------------------------------------------------------------
+// 3) OTHER YES/NO ITEMS WITH SINGLE DATES (event-based, not “last use”)
+// ------------------------------------------------------------------
+$drug_other_yn_date_items = [
+	[317, 'helping grow or harvest illegal drugs', 318],
+	[385, 'helping manufacture illegal drugs', 386],
+	[387, 'using, creating, or helping create a forged prescription for drugs', 388],
+	[389, 'selling illegal drugs (including minor sales to friends)', 390],
+	[391, 'causing someone to ingest a drug without their knowledge', 392],
+	[393, 'helping transport illegal drugs or assisting another person in drug sales', 394],
+	[397, 'operating a motor vehicle while under the influence of illegal drugs or narcotics', 398],
+	[395, 'pretending to use illegal narcotics, or stating they did when they did not', 396],
+];
+
+$other_drug_admissions = [];
+
+foreach ( $drug_other_yn_date_items as $cfg ) {
+	[ $yn_id, $label, $date_id ] = $cfg;
+
+	if ( $yn( $yn_id ) !== 'Yes' ) {
+		continue;
+	}
+
+	$piece = $label;
+
+	$date_raw = trim( (string) $val( (string) $date_id, '' ) );
+	if ( $date_raw !== '' ) {
+		$date_pretty = $fmt_date( $date_raw, 'F d, Y' );
+		$piece      .= " (approximate date: {$date_pretty})";
+	}
+
+	$other_drug_admissions[] = $piece;
+}
+
+// ------------------------------------------------------------------
+// 4) ONE COMBINED NARRATIVE PARAGRAPH
+// ------------------------------------------------------------------
+if ( ! empty( $used_drugs ) || ! empty( $other_drugs_items ) || ! empty( $other_drug_admissions ) ) {
+
+	$parts = [];
+
+	if ( ! empty( $used_drugs ) ) {
+		$parts[] = $A . ' reports use of the following illegal or controlled substances: ' . $oxford_join( $used_drugs ) . '.';
+	} else {
+		$parts[] = $A . ' reports no use of the listed illegal or controlled substances.';
+	}
+
+	if ( ! empty( $other_drugs_items ) ) {
+		$parts[] = 'Further reports other drugs: ' . $oxford_join( $other_drugs_items ) . '.';
+	}
+
+	if ( ! empty( $other_drug_admissions ) ) {
+		$parts[] = 'Further reports the following: ' . $oxford_join( $other_drug_admissions ) . '.';
+	}
+
+	$para( implode( ' ', $parts ) );
+
+} else {
+	$para( $A . ' denies any use of illegal drugs or misuse of prescription medications.' );
+}
+
+// ------------------------------------------------------------------
+// 5) COMMENTS
+// ------------------------------------------------------------------
+$para_comment( $drug_comments, 'Regarding illegal drugs and narcotics, ' . $A . ' noted:' );
+$para_comment( $exam_drug_comments, 'Examiner noted:' );
+?>

@@ -1,0 +1,68 @@
+<h2>Aggressive Behavior</h2>
+<?php
+$aggressive_items = [
+	525 => [ 'being involved in murder', 526 ],
+	527 => [ 'causing the death of another under some circumstance(s)', 528 ],
+	529 => [ 'committing a physical assault with a weapon', 530 ],
+	531 => [ 'hitting, kicking, or striking another person outside of sanctioned duty, training, or play fighting', 532 ],
+	533 => [ 'engaging in physical aggression toward a spouse or partner outside of play fighting', 534 ],
+	535 => [ 'inflicting discipline on a child resulting in bruises or injury', 536 ],
+	537 => [ 'intentionally inflicting pain, injury, or death on an animal outside of legal hunting', 538 ],
+	539 => [ 'intentionally causing physical harm to another person', 540 ],
+	541 => [ 'destroying or damaging property in anger', 542 ],
+	543 => [ 'engaging in vandalism', 544 ],
+	545 => [ 'committing arson (intentionally setting a fire that caused damage)', 546 ],
+	547 => [ 'participating in a riot involving violence or destruction of property', 548 ],
+];
+
+// ------------------------------------------------------------------
+// 1) ONE COMBINED NARRATIVE PARAGRAPH (Yes-only + pretty date/dates)
+// ------------------------------------------------------------------
+$aggressive_admissions = [];
+
+foreach ( $aggressive_items as $yn_id => $cfg ) {
+	[ $label, $dates_fid ] = $cfg;
+
+	if ( $yn( $yn_id ) !== 'Yes' ) {
+		continue;
+	}
+
+	$piece = $label;
+
+	$date_items = $list_field_items( $dates_fid );
+	$date_str   = $list_field_dates_pretty( $dates_fid, 'F d, Y' );
+
+	if ( $date_str !== '' ) {
+		$date_label = ( count( $date_items ) > 1 ) ? 'dates' : 'date';
+		$piece     .= " ({$date_label}: {$date_str})";
+	}
+
+	$aggressive_admissions[] = $piece;
+}
+
+if ( ! empty( $aggressive_admissions ) ) {
+
+	if ( count( $aggressive_admissions ) === 1 ) {
+		$text = $A . ' reports the following aggressive behavior history: ' . $aggressive_admissions[0] . '.';
+	} else {
+		$tmp  = $aggressive_admissions;
+		$last = array_pop( $tmp );
+		$list = ( count( $tmp ) > 1 )
+			? implode( ', ', $tmp ) . ', and ' . $last
+			: $tmp[0] . ' and ' . $last;
+
+		$text = $A . ' reports the following aggressive behavior history: ' . $list . '.';
+	}
+
+	$para( $text );
+
+} else {
+	$para( $A . ' reports no aggressive behavior.' );
+}
+
+// ------------------------------------------------------------------
+// COMMENTS
+// ------------------------------------------------------------------
+$para_comment( $aggressive_comments, 'Regarding aggressive behavior, ' . $A . ' noted:' );
+$para_comment( $exam_aggressive_comments, 'Examiner noted:' );
+?>

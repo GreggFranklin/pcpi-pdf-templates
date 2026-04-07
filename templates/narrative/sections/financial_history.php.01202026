@@ -1,0 +1,88 @@
+<h2>Credit and Financial History</h2>
+<?php
+$financial_items = [
+	271 => [ 'filed or are presently filing for bankruptcy', 408, 410 ],
+	273 => [ 'having a house, vehicle, or other property repossessed by a creditor', 422, 423 ],
+	275 => [ 'their salary attached by a creditor, tax official, or government agency', 424, 425 ],
+	277 => [ 'being sued because of owing money', 426, 427 ],
+	279 => [ 'having credit accounts or credit cards revoked due to lack of payments', 430, 429 ],
+	281 => [ 'being delinquent on alimony or child support payments', 431, 432 ],
+	283 => [ 'bouncing personal checks in the last three years', 433, 434 ],
+	285 => [ 'having bounced checks in the last three years that have not yet been paid', 435, 436 ],
+	288 => [ 'having bills assigned to collection agencies', 437, 438 ],
+	289 => [ 'having bills assigned to collection agencies in the last five years', 439, 440 ],
+	291 => [ 'putting false information on a financial document', 441, 442 ],
+];
+
+// Helper to pretty month/year
+$pretty_month = function( $m ) {
+	$m = trim( (string) $m );
+	if ( preg_match( '/^\d{1,2}$/', $m ) ) {
+		$n = (int) $m;
+		if ( $n >= 1 && $n <= 12 ) {
+			return wp_date( 'F', mktime( 0, 0, 0, $n, 1, 2000 ) );
+		}
+	}
+	return $m;
+};
+
+// ---------------------------------------------------------------
+// Collect YES admissions only
+// ---------------------------------------------------------------
+$admissions = [];
+
+foreach ( $financial_items as $yn_id => $cfg ) {
+	[ $label, $month_id, $year_id ] = $cfg;
+
+	if ( $yn( $yn_id ) !== 'Yes' ) {
+		continue;
+	}
+
+	$month = $pretty_month( $val( (string) $month_id, '' ) );
+	$year  = trim( (string) $val( (string) $year_id, '' ) );
+
+	$date_parts = array_filter( [ trim( (string) $month ), $year ] );
+	$date_str   = ! empty( $date_parts ) ? implode( ' ', $date_parts ) : '';
+
+	$item = $label;
+	if ( $date_str !== '' ) {
+		$item .= ' (approximate date: ' . $date_str . ')';
+	}
+
+	$admissions[] = $item;
+}
+
+// ---------------------------------------------------------------
+// Narrative Output
+// ---------------------------------------------------------------
+if ( ! empty( $admissions ) ) {
+
+	$para(
+		$A .
+		' reports the following credit and financial history: ' .
+		$oxford_join( $admissions, 'and' ) .
+		'.'
+	);
+
+	$para(
+		$A .
+		' denies any other significant credit or financial difficulties.'
+	);
+
+} else {
+
+	$para(
+		$A .
+		' denies any significant credit or financial difficulties.'
+	);
+}
+
+// ---------------------------------------------------------------
+// COMMENTS
+// ---------------------------------------------------------------
+$para_comment(
+	$financial_comments,
+	'Regarding credit and financial history, ' . $A . ' noted:'
+);
+$para_comment( $exam_financial_comments, 'Examiner noted:' );
+?>

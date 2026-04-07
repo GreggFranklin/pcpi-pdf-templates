@@ -1,0 +1,153 @@
+<h2>Military Service</h2>
+<?php
+/**
+ * MILITARY SERVICE — narrative (matches other sections)
+ *
+ * Direction:
+ * - One combined paragraph when there is service:
+ *   service branch + from/to, discharge characterization + year, selective service + number
+ * - Use $A once; if a second sentence is needed, start it with "The applicant..."
+ *
+ * Assumes from bootstrap:
+ * - $A, $entry
+ * - $yn(), $val(), $para(), $para_comment()
+ * - $fmt_date(), $oxford_join(), $para_nested(), $child_val()
+ */
+
+/* ---------------------------------------------------------
+ * Field IDs (adjust if needed)
+ * --------------------------------------------------------- */
+$service_yn_fid      = 33;   // Yes/No: served in Armed Forces
+$service_nested_fid  = 198;  // Nested form storing child entry IDs
+
+$discharge_year_fid  = 201;  // Discharge year
+$discharge_type_fid  = 200;  // Discharge characterization/type
+$discharge_expl_fid  = 202;  // Discharge explanation (optional)
+
+$sel_service_yn_fid  = 209;  // Selective Service Yes/No
+$sel_service_num_fid = 61;   // Selective Service number
+
+$served_ans = $yn( $service_yn_fid );
+
+/* ---------------------------------------------------------
+ * Collect nested service rows
+ * Child keys assumed:
+ * - 1 = Branch
+ * - 3 = From date
+ * - 4 = To date
+ * --------------------------------------------------------- */
+$service_items = [];
+
+$collector = function ( array $child ) use ( &$service_items, $child_val, $fmt_date ) {
+
+	$branch = trim( (string) $child_val( $child, '1' ) );
+	$from   = trim( (string) $child_val( $child, '3' ) );
+	$to     = trim( (string) $child_val( $child, '4' ) );
+
+	$from_f = ( $from !== '' ) ? $fmt_date( $from ) : '';
+	$to_f   = ( $to   !== '' ) ? $fmt_date( $to )   : '';
+
+	// Skip empty rows.
+	if ( $branch === '' && $from_f === '' && $to_f === '' ) {
+		return '';
+	}
+
+	$item = ( $branch !== '' ) ? $branch : 'a branch of service';
+
+	// Branch + from/to in one unit.
+	if ( $from_f !== '' && $to_f !== '' ) {
+		$item .= ' (' . $from_f . ' to ' . $to_f . ')';
+	} elseif ( $from_f !== '' ) {
+		$item .= ' (from ' . $from_f . ')';
+	} elseif ( $to_f !== '' ) {
+		$item .= ' (to ' . $to_f . ')';
+	}
+
+	$service_items[] = $item;
+
+	return '';
+};
+
+$para_nested( $entry, $service_nested_fid, $collector, 0 );
+
+$service_items = array_values( array_filter( array_map( 'trim', $service_items ) ) );
+
+/* ---------------------------------------------------------
+ * Discharge + Selective Service values
+ * --------------------------------------------------------- */
+$discharge_year = trim( (string) $val( $discharge_year_fid, '' ) );
+$discharge_type = trim( (string) $val( $discharge_type_fid, '' ) );
+$discharge_expl = trim( (string) $val( $discharge_expl_fid, '' ) );
+
+$sel_ans = $yn( $sel_service_yn_fid );
+$sel_num = trim( (string) $val( $sel_service_num_fid, '' ) );
+
+/* ---------------------------------------------------------
+ * Build paragraph (use $A once; "The applicant..." for sentence 2)
+ * --------------------------------------------------------- */
+$sentence_1 = '';
+$sentence_2_bits = [];
+
+// Sentence 1: military service (preferred anchor for $A)
+if ( ! empty( $service_items ) ) {
+	$sentence_1 = $A . ' reported military service in ' . rtrim( $oxford_join( $service_items ), '.' ) . '.';
+} elseif ( $served_ans === 'No' ) {
+	$sentence_1 = $A . ' reported no military service in the United States Armed Forces.';
+} elseif ( $served_ans === 'Yes' ) {
+	$sentence_1 = $A . ' reported prior military service.';
+}
+
+// Discharge characterization + year (only when there is service context)
+$has_service_context = ( ! empty( $service_items ) || $served_ans === 'Yes' );
+
+if ( $has_service_context ) {
+
+	if ( $discharge_type !== '' && $discharge_year !== '' ) {
+		$sentence_2_bits[] = 'a ' . $discharge_type . ' discharge in ' . $discharge_year;
+	} elseif ( $discharge_type !== '' ) {
+		$sentence_2_bits[] = 'a ' . $discharge_type . ' discharge';
+	} elseif ( $discharge_year !== '' ) {
+		$sentence_2_bits[] = 'being discharged in ' . $discharge_year;
+	}
+}
+
+// Selective Service + number
+if ( $sel_ans === 'Yes' ) {
+	$bit = 'registered with the Selective Service';
+	if ( $sel_num !== '' ) {
+		$bit .= ' (number: ' . $sel_num . ')';
+	}
+	$sentence_2_bits[] = $bit;
+} elseif ( $sel_ans === 'No' ) {
+	$sentence_2_bits[] = 'not registered with the Selective Service';
+}
+
+/* Output combined paragraph */
+if ( $sentence_1 !== '' || ! empty( $sentence_2_bits ) ) {
+
+	$text = '';
+
+	// Ensure $A appears once.
+	if ( $sentence_1 !== '' ) {
+		$text .= $sentence_1;
+	} else {
+		$text .= $A . ' provided military service information.';
+	}
+
+	if ( ! empty( $sentence_2_bits ) ) {
+		$text .= ' The applicant reported ' . rtrim( $oxford_join( $sentence_2_bits ), '.' ) . '.';
+	}
+
+	$para( $text );
+}
+
+/* Optional: discharge explanation (only if provided) */
+if ( $discharge_expl !== '' ) {
+	$para_comment( $discharge_expl, 'Explanation provided:' );
+}
+
+/* Examiner note (only if present) */
+if ( isset( $exam_military_comments ) && trim( (string) $exam_military_comments ) !== '' ) {
+	$para_comment( $exam_military_comments, 'Examiner noted:' );
+}
+?>

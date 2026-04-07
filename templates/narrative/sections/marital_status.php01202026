@@ -1,0 +1,178 @@
+<h2>Marital Status</h2>
+
+<?php
+/* ==================================================================
+ * MARITAL / DOMESTIC HISTORY (Narrative)
+ * - Cohabitants (nested: 223)
+ * - Delinquent alimony/child support (281 + 431/432)
+ * - Optional domestic/RO/LE items (9991–9996 placeholders)
+ * ================================================================== */
+
+// -------------------- CONFIG --------------------
+$REL_PARENT_FID = 223;
+
+// Child field mapping inside the Relationships child form.
+// Adjust to match the child form if needed.
+$REL_CHILD = [
+	"first" => "1", // first name OR Name base id
+	"last"  => "2", // last name (if separate)
+	"rel"   => "3", // relationship
+];
+
+// Placeholder IDs (replace after you add real fields)
+$FID_RO_YN      = "9991";
+$FID_RO_EXPLAIN = "9992";
+
+$FID_DV_YN      = "9993";
+$FID_DV_EXPLAIN = "9994";
+
+$FID_LE_YN      = "9995";
+$FID_LE_EXPLAIN = "9996";
+
+// Real Form 23 IDs
+$FID_SUPPORT_DELINQ_YN    = 281;
+$FID_SUPPORT_DELINQ_MONTH = 431;
+$FID_SUPPORT_DELINQ_YEAR  = 432;
+
+// -------------------- Local helpers --------------------
+$get_rel_name = function ( array $child ) use ( $REL_CHILD, $child_val, $child_name ) : string {
+
+	// If a Name field is used in the child form, prefer $child_name()
+	if ( isset( $child_name ) && is_callable( $child_name ) ) {
+		$maybe = trim( (string) $child_name( $child, (string) $REL_CHILD['first'] ) );
+		if ( $maybe !== '' ) {
+			return $maybe;
+		}
+	}
+
+	$first = trim( (string) $child_val( $child, (string) $REL_CHILD['first'] ) );
+	$last  = trim( (string) $child_val( $child, (string) $REL_CHILD['last'] ) );
+
+	return trim( preg_replace( '/\s+/', ' ', $first . ' ' . $last ) );
+};
+
+$pretty_month = function ( $m ) : string {
+	$m = trim( (string) $m );
+	if ( preg_match( '/^\d{1,2}$/', $m ) ) {
+		$n = (int) $m;
+		if ( $n >= 1 && $n <= 12 ) {
+			return wp_date( 'F', mktime( 0, 0, 0, $n, 1, 2000 ) );
+		}
+	}
+	return $m;
+};
+
+// -------------------- 223: Cohabitants --------------------
+$cohabitants = [];
+
+$para_nested(
+	$entry,
+	$REL_PARENT_FID,
+	function ( array $child ) use ( &$cohabitants, $get_rel_name, $REL_CHILD, $child_val ) : string {
+
+		$name = $get_rel_name( $child );
+		$rel  = trim( (string) $child_val( $child, (string) $REL_CHILD['rel'] ) );
+
+		if ( $name === '' && $rel === '' ) {
+			return '';
+		}
+
+		if ( $name !== '' && $rel !== '' ) {
+			$cohabitants[] = $name . ' (' . $rel . ')';
+		} else {
+			$cohabitants[] = ( $name !== '' ) ? $name : $rel;
+		}
+
+		return '';
+	}
+);
+
+$cohabitants = array_values( array_filter( array_map( 'trim', (array) $cohabitants ) ) );
+if ( ! empty( $cohabitants ) ) {
+	$cohabitants = array_values( array_unique( $cohabitants ) );
+}
+
+// -------------------- 281 + 431/432: Support delinquency --------------------
+$support_yn = $yn( $FID_SUPPORT_DELINQ_YN );
+
+$support_sentence = '';
+if ( $support_yn === 'Yes' ) {
+
+	$month = $pretty_month( $val( (string) $FID_SUPPORT_DELINQ_MONTH, '' ) );
+	$year  = trim( (string) $val( (string) $FID_SUPPORT_DELINQ_YEAR, '' ) );
+
+	$date_parts = array_values( array_filter( [ trim( (string) $month ), $year ] ) );
+	$date_str   = ! empty( $date_parts ) ? implode( ' ', $date_parts ) : '';
+
+	$support_sentence = 'The applicant reports being delinquent on alimony or child support payments';
+	if ( $date_str !== '' ) {
+		$support_sentence .= ' (approximate date: ' . $date_str . ')';
+	}
+	$support_sentence .= '.';
+
+} elseif ( $support_yn === 'No' ) {
+	$support_sentence = 'The applicant denies being delinquent on alimony or child support payments.';
+}
+
+// -------------------- Narrative paragraph #1 --------------------
+if ( ! empty( $cohabitants ) ) {
+	$para( $A . ' currently resides with ' . $oxford_join( $cohabitants, 'and' ) . '.' );
+} else {
+	$para( $A . ' reports no current cohabitants.' );
+}
+
+if ( $support_sentence !== '' ) {
+	$para( $support_sentence );
+}
+
+// -------------------- Domestic / RO / LE (narrative, combined) --------------------
+$events = [];
+$details_blocks = [];
+
+// Restraining order
+$ro = $yn( $FID_RO_YN );
+if ( $ro === 'Yes' ) {
+	$events[] = 'having had a restraining order or stay-away order issued against them';
+	$details_blocks[] = [ $val( $FID_RO_EXPLAIN, '' ), 'Restraining order details:' ];
+}
+
+// Domestic violence / physical confrontation
+$dv = $yn( $FID_DV_YN );
+if ( $dv === 'Yes' ) {
+	$events[] = 'being involved in domestic violence or a physical confrontation with a domestic or romantic partner';
+	$details_blocks[] = [ $val( $FID_DV_EXPLAIN, '' ), 'Domestic incident details:' ];
+}
+
+// Law enforcement response
+$le = $yn( $FID_LE_YN );
+if ( $le === 'Yes' ) {
+	$events[] = 'having law enforcement respond due to a domestic dispute or argument involving a domestic or romantic partner';
+	$details_blocks[] = [ $val( $FID_LE_EXPLAIN, '' ), 'Law enforcement response details:' ];
+}
+
+if ( ! empty( $events ) ) {
+
+	// One narrative paragraph
+	$para(
+		'The applicant reports ' . $oxford_join( $events, 'and' ) . '.'
+	);
+
+	// Then details (only if they provided them)
+	foreach ( $details_blocks as $row ) {
+		$details = isset( $row[0] ) ? (string) $row[0] : '';
+		$label   = isset( $row[1] ) ? (string) $row[1] : 'Details:';
+		$para_comment( $details, $label );
+	}
+
+} else {
+	// Only say a denial if the fields exist and were answered "No"
+	// (prevents awkward denials when you haven't added these fields yet)
+	$any_answered = in_array( $ro, [ 'Yes', 'No' ], true ) || in_array( $dv, [ 'Yes', 'No' ], true ) || in_array( $le, [ 'Yes', 'No' ], true );
+
+	if ( $any_answered && $ro !== 'Yes' && $dv !== 'Yes' && $le !== 'Yes' ) {
+		$para(
+			'The applicant denies having had a restraining order issued against them, being involved in domestic violence, or having law enforcement respond due to a domestic dispute.'
+		);
+	}
+}
+?>

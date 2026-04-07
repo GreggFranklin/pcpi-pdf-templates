@@ -1,0 +1,116 @@
+<h2>Driving History</h2>
+<?php
+$sentences = [];
+
+/* ---------------------------------------------------------
+ * Use Applicant ONCE, then switch to "The applicant"
+ * --------------------------------------------------------- */
+$S = 'The applicant'; // section subject after first sentence
+
+/* ---------------------------------------------------------
+ * STATUS (license / restrictions / insurance)
+ * --------------------------------------------------------- */
+$license_ans = $yn( 245 );
+if ( $license_ans === 'Yes' ) {
+	$sentences[] = $A . ' reports having a valid driver’s license.';
+} elseif ( $license_ans === 'No' ) {
+	$sentences[] = $A . ' does not have a valid driver’s license.';
+}
+
+if ( $yn( 246 ) === 'Yes' ) {
+	$sentences[] = $S . ' reports the driver’s license is currently under restrictions or limitations.';
+}
+
+$insurance_company = trim( (string) $val( '249', '' ) );
+if ( $yn( 247 ) === 'Yes' ) {
+	$sentences[] = $S . ' reports being insured with ' . ( $insurance_company !== '' ? $insurance_company : 'a valid automobile insurance policy' ) . '.';
+}
+
+/* ---------------------------------------------------------
+ * NEGATIVE DRIVING HISTORY (Yes-only admissions)
+ * (phrases are gerund-ish on purpose)
+ * --------------------------------------------------------- */
+$driving_negative_map = [
+	254 => 'unresolved traffic citations within the last seven years',
+	255 => 'failures to appear on traffic citations or traffic warrants within the last five years',
+	257 => 'a drunk driving, reckless driving, speed contest, or exhibition of speed violation within the past five years',
+	256 => 'being stopped by law enforcement within the past three years without receiving a citation',
+	258 => 'attempting to evade a police officer either in a vehicle or on foot',
+	259 => 'driving a motor vehicle within the past year while consuming an alcoholic beverage',
+];
+
+$admissions = [];
+foreach ( $driving_negative_map as $fid => $phrase ) {
+	if ( $yn( $fid ) === 'Yes' ) {
+		$admissions[] = $phrase;
+	}
+}
+
+if ( ! empty( $admissions ) ) {
+	$sentences[] =
+		$S .
+		' reports the following driving-related history: ' .
+		$oxford_join( $admissions, 'and' ) .
+		'.';
+
+	$sentences[] =
+		$S .
+		' denies any other significant driving-related violations or issues.';
+} else {
+	$sentences[] =
+		$S .
+		' denies any significant driving-related violations or issues.';
+}
+
+/* ---------------------------------------------------------
+ * Seven-year quantities (counts)
+ * --------------------------------------------------------- */
+$moving    = trim( (string) $val( '250', '' ) );
+$equipment = trim( (string) $val( '251', '' ) );
+$accidents = trim( (string) $val( '252', '' ) );
+$parking   = trim( (string) $val( '253', '' ) );
+
+$counts = [];
+
+$bit = $count_phrase( $moving, 'moving traffic citation' );
+if ( $bit !== '' ) { $counts[] = $bit; }
+
+$bit = $count_phrase( $equipment, 'equipment violation' );
+if ( $bit !== '' ) { $counts[] = $bit; }
+
+$bit = $count_phrase( $accidents, 'traffic accident' );
+if ( $bit !== '' ) { $counts[] = $bit; }
+
+$bit = $count_phrase( $parking, 'parking citation' );
+if ( $bit !== '' ) { $counts[] = $bit; }
+
+if ( ! empty( $counts ) ) {
+	$sentences[] =
+		'In the last seven years, ' .
+		$S .
+		' reports ' .
+		$oxford_join( $counts, 'and' ) .
+		'.';
+}
+
+/* ---------------------------------------------------------
+ * Output
+ * --------------------------------------------------------- */
+$sentences = array_values( array_filter( array_map( 'trim', $sentences ) ) );
+if ( ! empty( $sentences ) ) {
+	$para( implode( ' ', $sentences ) );
+}
+
+/* ---------------------------------------------------------
+ * Comments
+ * --------------------------------------------------------- */
+$para_comment(
+	$driving_comments,
+	'Regarding driving history, ' . $A . ' noted:'
+);
+
+$para_comment(
+	$exam_driving_comments,
+	'Examiner noted:'
+);
+?>

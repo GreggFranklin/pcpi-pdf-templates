@@ -1,0 +1,144 @@
+<h2>Driving History</h2>
+<?php
+$sentences = [];
+
+/* ---------------------------------------------------------
+ * Subject + pronoun (prefer your bootstrap pronoun if available)
+ * --------------------------------------------------------- */
+$S = 'The applicant';
+
+$P = $S; // pronoun-ish subject for later sentences
+if ( isset( $he ) && is_string( $he ) && trim( $he ) !== '' ) {
+	$P = trim( $he ); // e.g. "He" / "She" / "They"
+}
+
+/* ---------------------------------------------------------
+ * STATUS (license / restrictions / insurance)
+ * --------------------------------------------------------- */
+$license_ans = $yn( 245 );
+
+if ( $license_ans === 'Yes' ) {
+	$sentences[] = $A . ' possesses a valid driver’s license.';
+} elseif ( $license_ans === 'No' ) {
+	$sentences[] = $A . ' does not possess a valid driver’s license.';
+}
+
+// Restrictions/limitations
+$restr_ans = $yn( 246 );
+if ( $restr_ans === 'Yes' ) {
+	$sentences[] = $P . ' reports the driver’s license is currently under restrictions or limitations.';
+} elseif ( $restr_ans === 'No' ) {
+	// Optional: only include denial when license is yes
+	if ( $license_ans === 'Yes' ) {
+		$sentences[] = $P . ' denies the driver’s license is currently under restrictions or limitations.';
+	}
+}
+
+// Insurance
+$insurance_ans     = $yn( 247 );
+$insurance_company = trim( (string) $val( '249', '' ) );
+
+if ( $insurance_ans === 'Yes' ) {
+	$sentences[] = $P . ' carries liability insurance' . ( $insurance_company !== '' ? ' with ' . $insurance_company : '' ) . '.';
+} elseif ( $insurance_ans === 'No' ) {
+	$sentences[] = $P . ' reports not carrying liability insurance.';
+}
+
+/* ---------------------------------------------------------
+ * NEGATIVE DRIVING HISTORY (Yes admissions; denial sentence after)
+ * --------------------------------------------------------- */
+$driving_negative_map = [
+	254 => 'having unresolved traffic citations within the last seven (7) years',
+	255 => 'having failures to appear on traffic citations or traffic warrants within the last five (5) years',
+	257 => 'having a drunk driving, reckless driving, speed contest, or exhibition of speed violation within the past five (5) years',
+	256 => 'being stopped by law enforcement within the past three (3) years without receiving a citation',
+	258 => 'attempting to evade a police officer either in a vehicle or on foot',
+	259 => 'driving a motor vehicle within the past year while consuming an alcoholic beverage',
+];
+
+$admissions = [];
+foreach ( $driving_negative_map as $fid => $phrase ) {
+	if ( $yn( $fid ) === 'Yes' ) {
+		$admissions[] = $phrase;
+	}
+}
+
+if ( ! empty( $admissions ) ) {
+	$sentences[] = $P . ' admitted to ' . $oxford_join( $admissions, 'and' ) . '.';
+	$sentences[] = $P . ' denies any other significant driving-related violations or issues.';
+} else {
+	$sentences[] = $P . ' denies any significant driving-related violations or issues.';
+}
+
+/* ---------------------------------------------------------
+ * Seven-year quantities (counts) — match your example tone
+ * --------------------------------------------------------- */
+$moving    = trim( (string) $val( '250', '' ) );
+$equipment = trim( (string) $val( '251', '' ) );
+$accidents = trim( (string) $val( '252', '' ) );
+$parking   = trim( (string) $val( '253', '' ) );
+
+// If you already have a formatter that yields "four (4)", use it.
+// We'll use $count_phrase() for the grouped sentence,
+// and also give "traffic citations" its own line like your example.
+$counts = [];
+
+$bit = $count_phrase( $moving, 'traffic citation' );
+if ( $bit !== '' ) { $counts[] = $bit; }
+
+$bit = $count_phrase( $equipment, 'equipment violation' );
+if ( $bit !== '' ) { $counts[] = $bit; }
+
+$bit = $count_phrase( $accidents, 'traffic accident' );
+if ( $bit !== '' ) { $counts[] = $bit; }
+
+$bit = $count_phrase( $parking, 'parking citation' );
+if ( $bit !== '' ) { $counts[] = $bit; }
+
+// A single strong “admitted to X citations” line (like your example)
+if ( $moving !== '' ) {
+	$move_phrase = $count_phrase( $moving, 'traffic citation' );
+	if ( $move_phrase !== '' ) {
+		$sentences[] = $P . ' admitted to ' . rtrim( $move_phrase, '.' ) . ' in the past seven (7) years.';
+	}
+}
+
+// Optional grouped counts sentence (only if there’s more than just moving citations)
+if ( count( $counts ) > 1 ) {
+	$sentences[] = 'In the past seven (7) years, ' . $P . ' reported ' . $oxford_join( $counts, 'and' ) . '.';
+}
+
+/* ---------------------------------------------------------
+ * Output (one narrative paragraph)
+ * --------------------------------------------------------- */
+$sentences = array_values( array_filter( array_map( 'trim', $sentences ) ) );
+if ( ! empty( $sentences ) ) {
+	$para( implode( ' ', $sentences ) );
+}
+
+/* ---------------------------------------------------------
+ * Applicant narrative (best we can do without a nested incidents form)
+ * - If driving_comments contains paragraphs like your example, output them as-is.
+ * --------------------------------------------------------- */
+$driving_comments_text = isset( $driving_comments ) ? trim( (string) $driving_comments ) : '';
+
+if ( $driving_comments_text !== '' ) {
+
+	$label = 'Driving-related incidents described by the applicant: ';
+
+	if ( function_exists( 'wpautop' ) ) {
+		// Use $para_html if your bootstrap supports it (you do in other sections).
+		if ( isset( $para_html ) && is_callable( $para_html ) ) {
+			$para_html( esc_html( $label ) . '' . wpautop( esc_html( $driving_comments_text ) ) );
+		} else {
+			// Fallback: keep your existing comment helper
+			$para_comment( $driving_comments_text, $label );
+		}
+	} else {
+		$para_comment( $driving_comments_text, $label );
+	}
+}
+
+/* Examiner note */
+$para_comment( $exam_driving_comments, 'Examiner noted:' );
+?>

@@ -1,0 +1,50 @@
+<h2>Additional</h2>
+<?php
+/*
+	$para_dropdown = function( $field_id, $sentence_prefix ) use ( $val, $para, &$A ) {
+		$v = trim( (string) $val( (string) $field_id, '' ) );
+		if ( $v !== '' ) {
+			$para( $A . ' reports the following: ' . $sentence_prefix . ' ' . $v . '.' );
+		}
+	};
+
+	$para_yes_only = function( $yn_id, $yes_text ) use ( $yn, $para, &$A ) {
+		if ( $yn( $yn_id ) === 'Yes' ) {
+			$para( preg_replace( '/^The applicant\b/i', $A, (string) $yes_text ) );
+		}
+	};
+
+	$para_dropdown( 112, 'Regarding CVSA,' );
+	$para_dropdown( 113, 'Regarding polygraph examinations,' );
+
+	$para_yes_only( 115, 'The applicant reports being told they failed a CVSA and/or polygraph examination.' );
+	$para_yes_only( 114, 'The applicant reports having lied about something during prior CVSA and/or polygraph interviews or examinations.' );
+	$para_yes_only( 116, 'The applicant reports there is something currently concerning them that should be discussed prior to the polygraph test.' );
+	$para_yes_only( 117, 'The applicant reports there is something they are concerned about that is not listed on this questionnaire.' );
+	$para_yes_only( 118, 'The applicant reports they truthfully answered each question on this questionnaire.' );
+	$para_yes_only( 119, 'The applicant reports having told a serious lie to someone in authority.' );
+
+	$para_comment( $additional_comments, 'Regarding additional disclosures, ' . $A . ' noted:' );
+
+	$para_yes_only( 121, 'The applicant reports they did not answer truthfully on their application and personal history statement (PHS) submitted to the background investigator.' );
+	$para_yes_only( 122, 'The applicant reports there is something they forgot to add or would like to change on their personal history statement (PHS).' );
+
+	$explanation_gate_fields = [ 114, 115, 116, 117, 118, 119, 121, 122 ];
+	$explanation_gate = false;
+	foreach ( $explanation_gate_fields as $fid ) {
+		if ( $yn( $fid ) === 'Yes' ) {
+			$explanation_gate = true;
+			break;
+		}
+	}
+
+	if ( $explanation_gate ) {
+		$expl = trim( (string) $val( '334', '' ) );
+		if ( $expl !== '' ) {
+			$para( 'Explanation: ' . $expl . '.' );
+		}
+	}
+
+	$para_comment( $exam_additional_comments, 'Examiner noted:' );
+	*/
+?>

@@ -1,0 +1,489 @@
+/* ---------- PAGE / GLOBAL ---------- */
+@page {
+  margin: 40pt 40pt;
+  footer: html_MyCustomFooter;
+}
+
+* { box-sizing: border-box; }
+
+/* Force FreeSerif everywhere by default */
+body, table, thead, tbody, tfoot, tr, td, th,
+p, div, span, b, strong, em, i, u,
+h2, h3, h4, h5, h6 {
+  font-family: freeserif, serif !important;
+}
+
+body {
+  font-size: 11pt;
+  line-height: 1.35;
+  color: #000;
+  margin: 0;
+}
+
+.container { width: 100%; }
+
+.text-center { text-align: center; }
+.text-left   { text-align: left; }
+
+/* ---------- HEADER BLOCK ---------- */
+/* DejaVu Sans ONLY where explicitly wanted */
+
+h1 {
+  font-family: "DejaVu Sans", Arial, sans-serif !important;
+  font-size: 16pt;
+  font-weight: bold;
+  margin: 0 0 2pt 0;
+}
+
+.services {
+  font-family: "DejaVu Sans", Arial, sans-serif !important;
+  font-size: 9.5pt;
+  margin: 0 0 6pt 0;
+  font-weight: normal;
+}
+
+h2 {
+  font-size: 12pt;
+  font-weight: bold;
+  text-decoration: underline;
+  text-transform: uppercase;
+  margin: 10px 0;
+}
+
+.navy-line {
+  height: 4pt;
+  background: #0b2a4a;
+  margin: 6pt 0 10pt 0;
+}
+
+.name {
+  font-size: 12pt;
+  font-weight: bold;
+  margin: 0;
+}
+
+.title {
+  font-size: 10.5pt;
+  font-weight: bold;
+  margin: 1pt 0 2pt 0;
+}
+
+.email,
+.phone {
+  font-size: 10pt;
+  margin: 0;
+}
+
+.report-title {
+  margin: 10pt 0 8pt 0;
+  font-size: 12pt;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.2pt;
+}
+
+/* ---------- WARNING BOX ---------- */
+.warning {
+  display: block;
+  width: 92%;
+  margin: 0 auto 14pt auto;
+  padding: 8pt 10pt;
+  border: 1pt solid #000;
+  font-size: 9.8pt;
+  font-weight: bold;
+  text-transform: uppercase;
+  line-height: 1.25;
+}
+
+/* ---------- INFO TABLE + RIGHT PHOTO BOX ---------- */
+/* Center the info table block on the page */
+table.info-table {
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 10pt;
+  width: 75%;
+}
+/*
+table.info-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0 0 10pt 0;
+  position: relative;
+  padding-right: 165pt;
+  font-family: freeserif, serif !important;
+}
+*/
+/* Right-side photo rectangle */
+table.info-table:after {
+  content: "";
+  position: absolute;
+  top: 6pt;
+  right: 0;
+  width: 135pt;
+  height: 155pt;
+  border: 1pt solid #000;
+  background: #fff;
+}
+
+/* Table cells */
+table.info-table td {
+  padding: 3pt 4pt;
+  vertical-align: top;
+  font-family: freeserif, serif !important;
+  font-weight: normal;
+}
+
+/* Label column */
+table.info-table th:first-child {
+  width: 155pt;
+  font-weight: bold;
+  padding-left: 0;
+  white-space: nowrap;
+  text-align: left; 
+}
+
+/* Value column */
+table.info-table td:last-child {
+  padding-right: 10pt;
+}
+
+/* Results row emphasis */
+table.info-table tr:last-child td:first-child {
+  font-weight: bold;
+}
+
+/* Table header + data cells */
+table.info-table th,
+table.info-table td {
+  padding: 3pt 4pt;
+  vertical-align: top;
+  font-family: freeserif, serif !important;
+  font-weight: normal;
+  text-align: left; /* default everything left */
+}
+
+/* Label column (your labels are TH) */
+table.info-table th {
+  width: 155pt;
+  font-weight: bold;
+  padding-left: 0;
+  white-space: nowrap;
+  text-align: left !important;  /* force left */
+}
+
+/* ---------- NSR GREEN ---------- */
+.nsr {
+  color: #1a7f2e;
+  font-weight: bold;
+}
+
+/* ---------- NARRATIVE ---------- */
+p {
+  margin: 0 0 8pt 0;
+}
+
+/* ---------- NOTICE ---------- */
+.notice {
+  text-align: center;
+  margin: 12pt 0 18pt 0;
+  font-weight: bold;
+  text-transform: uppercase;
+  line-height: 1.25;
+}
+
+.notice.underline {
+  text-decoration: underline;
+  text-underline-offset: 2pt;
+  text-decoration-thickness: 1pt;
+}
+
+.full-caps,
+.small-caps {
+  font-weight: bold;
+}
+
+/* ---------- SIGNATURE BLOCK ---------- */
+.signature-block {
+  margin-top: 10pt;
+}
+
+.signature-block > div:first-child {
+  margin-bottom: 6pt;
+}
+
+.signature-line {
+  height: 70pt;
+  margin: 2pt 0 6pt 0;
+}
+
+.signature-line img {
+  display: inline-block;
+  margin-top: 2pt;
+}
+
+.signature-img {
+  width: 220px;
+  height: auto;
+  max-height: 90px;
+  display: block;
+  margin-top: 4pt;
+}
+
+/* ---------- MEMBER TABLE ---------- */
+table.member-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10pt;
+  font-family: freeserif, serif !important;
+}
+
+table.member-table td {
+  padding: 0;
+  vertical-align: top;
+  font-family: freeserif, serif !important;
+}
+
+table.member-table td.label {
+  width: 70pt;
+  font-weight: bold;
+  padding-right: 8pt;
+  white-space: nowrap;
+}
+
+table.member-table td.items div {
+  margin: 0 0 2pt 0;
+  font-size: 10pt;
+}
+
+/* ---------- PAGE BREAK ---------- */
+.page-break {
+  page-break-before: always;
+}
+
+/* ---------- QUESTIONS (Q&A) ---------- */
+table.qa {
+  width: 100%;
+  border-collapse: collapse;
+  border-spacing: 0;
+
+  /* CHANGED: tighten spacing between question blocks */
+  margin-bottom: 10pt;      /* was 24pt */
+
+  page-break-inside: avoid;
+  font-family: freeserif, serif !important;
+  table-layout: fixed; /* key: stable column widths */
+}
+
+table.qa td {
+  /* CHANGED: tighter row padding */
+  padding: 2pt 0;           /* was 6pt 0 */
+
+  vertical-align: top;
+  font-family: freeserif, serif !important;
+  font-weight: normal;
+}
+
+/* Label column */
+table.qa td:first-child {
+  /* CHANGED: tighter label column + smaller gap */
+  width: 95pt;              /* was 120pt */
+  padding-right: 8pt;       /* was 12pt */
+
+  /* CHANGED: left-align labels (Option B) */
+  text-align: left;         /* was right */
+
+  font-weight: bold;
+  color: #000;
+  white-space: nowrap;      /* prevents "Question 10:" wrapping */
+}
+
+/* Content column */
+table.qa td:last-child {
+  padding-left: 0;
+  text-align: left;
+  hyphens: none;
+  -webkit-hyphens: none;
+  word-break: normal;
+  overflow-wrap: normal;
+}
+
+/* CHANGED: tighten question/answer vertical spacing */
+table.qa tr td {
+  line-height: 1.2;         /* was 1.35 */
+}
+
+/* CHANGED: tiny separation between Question row and Answer/Result row */
+table.qa tr + tr td {
+  padding-top: 1pt;
+}
+
+/* ============================================================
+   RESULT COLOR SEMANTICS
+   ============================================================ */
+
+/* Favorable */
+.result-nsr,
+.result-ndi {
+  color: #1f7a1f; /* green */
+  font-weight: bold;
+}
+
+/* Adverse */
+.result-sr,
+.result-di {
+  color: #b00020; /* red */
+  font-weight: bold;
+}
+
+/* Indeterminate */
+.result-inc {
+  color: #b8860b; /* amber / gold */
+  font-weight: bold;
+}
+
+/* Examiner neutrality */
+.result-no {
+  color: #000000; /* black */
+  font-weight: bold;
+}
+
+/* Safety fallback */
+.result-unknown {
+  color: #444444;
+  font-weight: bold;
+}
+
+/* ---------- FINAL SAFETY NET ---------- */
+b, strong {
+  font-family: freeserif, serif !important;
+  font-weight: bold !important;
+}
+
+/* --- Q/A right column alignment fix (prevents wavy/indented left edge) --- */
+table.qa td:last-child {
+  text-align: left !important;
+  text-justify: none;
+  text-align-last: left;
+  word-spacing: normal !important;
+  letter-spacing: normal !important;
+  white-space: normal;
+}
+
+/* Some PDF engines justify <p> inside table cells */
+table.qa td:last-child p,
+table.qa td:last-child div,
+table.qa td:last-child span {
+  text-align: left !important;
+  text-justify: none;
+}
+
+/* -------------------------------------------------
+ * Q/A alignment hard-fix: make right column start perfectly
+ * ------------------------------------------------- */
+
+/* Kill any justify behavior that causes the “wavy” left edge */
+table.qa td.qa-text,
+table.qa td.qa-text * {
+  text-align: left !important;
+  text-justify: none;
+  text-align-last: left;
+  word-spacing: normal !important;
+  letter-spacing: normal !important;
+}
+
+/* Ensure consistent left edge regardless of font quirks */
+table.qa td.qa-text {
+  padding-left: 0 !important;
+  margin-left: 0 !important;
+  text-indent: 0 !important;
+}
+
+/* If the PDF engine applies indenting to strong text */
+table.qa td.qa-text strong {
+  text-indent: 0 !important;
+}
+
+/* -------------------------------------------------
+ * Test Questions layout (DIV grid) — replaces tables
+ * ------------------------------------------------- */
+
+.qa-block {
+  margin: 0 0 8pt 0;
+  page-break-inside: avoid;
+}
+
+.qa-row {
+  display: block; /* safer for PDF engines than flex */
+  clear: both;
+  margin: 0 0 2pt 0;
+}
+
+.qa-left {
+  float: left;
+  width: 95pt;         /* label column width */
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+.qa-right {
+  margin-left: 103pt;  /* width + gutter */
+  text-align: left !important;
+  text-indent: 0 !important;
+  word-spacing: normal !important;
+  letter-spacing: normal !important;
+  line-height: 1.2;
+}
+
+.qa-right * {
+  text-align: left !important;
+  text-indent: 0 !important;
+}
+
+.qa-answer strong,
+.qa-result strong {
+  font-weight: bold;
+}
+
+/* Clear floats */
+.qa-row:after {
+  content: "";
+  display: block;
+  clear: both;
+}
+
+/* Optional: slightly tighter spacing between question and answer/result */
+.qa-block .qa-row:last-child {
+  margin-bottom: 0;
+}
+
+/* ---------- QUESTIONS (Q&A) — DIV LAYOUT ---------- */
+.qa-block {
+  margin: 0 0 12pt 0;          /* space between each question block */
+  page-break-inside: avoid;
+}
+
+.qa-row {
+  line-height: 1.25;
+  margin: 0;
+}
+
+.qa-left {
+  width: 120pt;
+  display: inline-block;
+  padding-right: 12pt;
+  text-align: right;
+  font-weight: bold;
+  white-space: nowrap;
+  vertical-align: top;
+}
+
+.qa-right {
+  display: inline-block;
+  width: 360pt;                /* mPDF-safe fixed width (avoid calc()) */
+  vertical-align: top;
+}
+
+.qa-answer .qa-right strong,
+.qa-result .qa-right strong {
+  font-weight: bold;
+}

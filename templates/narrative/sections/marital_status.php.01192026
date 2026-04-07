@@ -1,0 +1,180 @@
+<h2>Marital Status</h2>
+
+
+<?php
+/* ==================================================================
+   DOMESTIC + RELATIONSHIP HISTORY (drop-in narrative section)
+   - Uses Relationships nested form (who lives with applicant)
+   - Uses 3 new Yes/No questions + explanation fields you’ll add
+   ------------------------------------------------------------------
+   REQUIREMENTS (you already have most helpers above):
+   - $A (e.g. "Applicant John A. Doe")
+   - $para(), $para_html(), $para_comment()
+   - $yn(), $val()
+   - $para_nested()  (your generic nested renderer)
+   - $child_val() and/or $child_name() (optional)
+   ================================================================== */
+
+/* ---------------- CONFIG: set your field IDs here ----------------- */
+
+// Relationships nested field ID on the *review* form (you mapped it as 223).
+$REL_PARENT_FID = 223;
+
+// Child field mapping inside the Relationships child form.
+// Change these to match your child form field IDs.
+$REL_CHILD = [
+    "first" => "1", // Single line text (first name) OR Name field base id
+    "last" => "2", // Single line text (last name)  (ignore if you use Name field)
+    "rel" => "3", // Relationship dropdown (Spouse/Child/Friend/etc.)
+];
+
+// NEW QUESTIONS you’ll add to the Review form (set IDs after you create them)
+$FID_RO_YN = "9991"; // Have you ever had a restraining/stay-away order issued against you?
+$FID_RO_EXPLAIN = "9992"; // Explain circumstances...
+
+$FID_DV_YN = "9993"; // Domestic violence / physical confrontation with domestic/romantic partner?
+$FID_DV_EXPLAIN = "9994"; // Explain circumstances...
+
+$FID_LE_YN = "9995"; // Law enforcement response due to domestic dispute/argument?
+$FID_LE_EXPLAIN = "9996"; // Describe circumstances...
+
+/* ------------------------------------------------------------------ */
+/* Helpers local to this section                                       */
+/* ------------------------------------------------------------------ */
+
+// Best-effort: build "First Last" from child entry using either Name field OR separate first/last.
+$get_rel_name = function (array $child) use (
+    $REL_CHILD,
+    $child_val,
+    $child_name
+) {
+    // If you have $child_name helper and your child uses a GF Name field base id:
+    // (If REL_CHILD['first'] is actually the Name base id, this will still work)
+    if (isset($child_name) && is_callable($child_name)) {
+        // Try treating REL_CHILD['first'] as a Name base id first
+        $maybe = trim(
+            (string) $child_name($child, (string) $REL_CHILD["first"])
+        );
+        if ($maybe !== "") {
+            return $maybe;
+        }
+    }
+
+    $first = trim((string) $child_val($child, (string) $REL_CHILD["first"]));
+    $last = trim((string) $child_val($child, (string) $REL_CHILD["last"]));
+
+    $name = trim(preg_replace("/\s+/", " ", $first . " " . $last));
+    return $name;
+};
+
+$format_rel = function ($raw) {
+    $raw = trim((string) $raw);
+    if ($raw === "") {
+        return "";
+    }
+    // Normalize relationship label a bit
+    $raw = preg_replace("/\s+/", " ", $raw);
+    return $raw;
+};
+
+// Build the cohabitant sentence(s) from nested rows.
+$cohabitants = []; // array of strings like "Jane Doe (Spouse)"
+$para_nested($entry, $REL_PARENT_FID, function ($child) use (
+    &$cohabitants,
+    $get_rel_name,
+    $child_val,
+    $REL_CHILD,
+    $format_rel
+) {
+    $name = $get_rel_name($child);
+    $rel = $format_rel($child_val($child, (string) $REL_CHILD["rel"]));
+
+    // If there’s nothing usable, skip
+    if ($name === "" && $rel === "") {
+        return "";
+    }
+
+    // Prefer "Name (relationship)" when both exist
+    if ($name !== "" && $rel !== "") {
+        $cohabitants[] = $name . " (" . $rel . ")";
+        return "";
+    }
+
+    // Otherwise just push the piece we do have
+    $cohabitants[] = $name !== "" ? $name : $rel;
+    return "";
+});
+
+/* ------------------------------------------------------------------ */
+/* Output section                                                      */
+/* ------------------------------------------------------------------ */
+?>
+
+<?php
+// Who lives with applicant (from nested form)
+if (!empty($cohabitants)) {
+    // de-dupe while preserving order
+    $cohabitants = array_values(array_unique(array_map("trim", $cohabitants)));
+
+    // Oxford-comma-ish join
+    $list = "";
+    $count = count($cohabitants);
+    if ($count === 1) {
+        $list = $cohabitants[0];
+    } elseif ($count === 2) {
+        $list = $cohabitants[0] . " and " . $cohabitants[1];
+    } else {
+        $last = array_pop($cohabitants);
+        $list = implode(", ", $cohabitants) . ", and " . $last;
+    }
+
+    $para($A . " currently resides with " . $list . ".");
+} else {
+    $para($A . " reports no current cohabitants");
+}
+
+// Restraining / stay-away order
+if ($yn($FID_RO_YN) === "Yes") {
+    $para(
+        $A .
+            " reports having had a restraining order or stay-away order issued against them."
+    );
+    $para_comment($val($FID_RO_EXPLAIN, ""), "Details provided:");
+} elseif ($yn($FID_RO_YN) === "No") {
+    $para(
+        $A .
+            " denies ever having a restraining order or stay-away order issued against them."
+    );
+}
+
+// Domestic violence / physical confrontation
+if ($yn($FID_DV_YN) === "Yes") {
+    $para(
+        $A .
+            " reports having been involved in domestic violence or a physical confrontation with a domestic or romantic partner."
+    );
+    $para_comment($val($FID_DV_EXPLAIN, ""), "Details provided:");
+} elseif ($yn($FID_DV_YN) === "No") {
+    $para(
+        $A .
+            " denies any history of domestic violence or physical confrontations with a domestic or romantic partner."
+    );
+}
+
+// Law enforcement response to domestic dispute
+if ($yn($FID_LE_YN) === "Yes") {
+    $para(
+        $A .
+            " reports law enforcement officers have responded due to a domestic dispute or argument involving a domestic or romantic partner."
+    );
+    $para_comment($val($FID_LE_EXPLAIN, ""), "Details provided:");
+} elseif ($yn($FID_LE_YN) === "No") {
+    $para(
+        $A .
+            " denies having law enforcement respond due to a domestic dispute or argument involving a domestic or romantic partner."
+    );
+}
+
+// Optional: keep your examiner comments pattern
+// $para_comment( $exam_relationship_comments, 'Examiner noted:' ); // if you add one
+?>

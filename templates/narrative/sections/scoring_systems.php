@@ -1,0 +1,2 @@
+<h2>Scoring Systems:</h2>
+<p>Analysis of the polygraph test results were confirmed using the Empirical Scoring System Multinomial (ESS-M), which resulted in statistically significant numerical scores that support the examiner's conclusions of <span class="nsr">No Significant Reaction (NSR)</span>.</p>

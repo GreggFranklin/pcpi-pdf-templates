@@ -1,0 +1,51 @@
+<h2>Weapons History</h2>
+<?php
+$weapons_items = [
+	345 => [ 'possessing illegal firearms', 564 ],
+	347 => [ 'threatening another person with a firearm or pointing a firearm at another person', 565 ],
+	420 => [ 'accidentally discharging a firearm or illegally firing a weapon', 566 ],
+	549 => [ 'illegally carrying or transporting a loaded or concealed firearm', 567 ],
+	550 => [ 'possessing illegal explosives', 568 ],
+	551 => [ 'damaging property or injuring someone with an explosion', 569 ],
+	552 => [ 'possessing illegal knives', 570 ],
+	554 => [ 'threatening another person with a knife', 571 ],
+	553 => [ 'possessing illegal martial arts fighting weapons', 572 ],
+];
+
+/**
+ * IMPORTANT:
+ * Use the existing helpers from _bootstrap.php:
+ * - $list_field_items()
+ * - $list_field_dates_pretty()
+ */
+$weapons_admissions = [];
+
+foreach ( $weapons_items as $yn_id => $cfg ) {
+	[ $label, $dates_fid ] = $cfg;
+
+	if ( $yn( $yn_id ) !== 'Yes' ) {
+		continue;
+	}
+
+	$piece = $label;
+
+	$date_items = $list_field_items( $dates_fid );                 // already flattened by your helper
+	$date_str   = $list_field_dates_pretty( $dates_fid, 'F j, Y' ); // formats each date nicely
+
+	if ( $date_str !== '' ) {
+		$date_label = ( count( $date_items ) > 1 ) ? 'dates' : 'date';
+		$piece     .= " ({$date_label}: {$date_str})";
+	}
+
+	$weapons_admissions[] = $piece;
+}
+
+if ( ! empty( $weapons_admissions ) ) {
+	$para( $A . ' reports the following weapons history: ' . $oxford_join( $weapons_admissions ) . '.' );
+} else {
+	$para( $A . ' reports no negative weapons history.' );
+}
+
+$para_comment( $weapons_comments, 'Regarding weapons history, ' . $A . ' noted:' );
+$para_comment( $exam_weapons_comments, 'Examiner noted:' );
+?>

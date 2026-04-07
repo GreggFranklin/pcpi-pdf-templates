@@ -1,0 +1,56 @@
+<h2>Residential History</h2>
+<?php
+$res_yn = [
+	261 => 'being late paying rent or a mortgage payment',
+	262 => 'moving without giving appropriate notice to a landlord',
+	263 => 'being evicted from a residence',
+	264 => 'forfeiting or being refused a return of a deposit by a landlord',
+	265 => 'a landlord taking civil or criminal action for past-due rent',
+	266 => 'receiving negative comments from a neighbor or former landlord',
+];
+
+/* ---------------------------------------------------------------
+ * Collect YES admissions only
+ * --------------------------------------------------------------- */
+$admissions = [];
+
+foreach ( $res_yn as $fid => $label ) {
+	if ( $yn( $fid ) === 'Yes' ) {
+		$admissions[] = $label;
+	}
+}
+
+/* ---------------------------------------------------------------
+ * Narrative Output
+ * --------------------------------------------------------------- */
+if ( ! empty( $admissions ) ) {
+
+	$para(
+		$A .
+		' reports the following residential history: ' .
+		$oxford_join( $admissions, 'and' ) .
+		'.'
+	);
+
+	$para(
+		$A .
+		' denies any other significant residential issues.'
+	);
+
+} else {
+
+	$para(
+		$A .
+		' denies any significant residential issues.'
+	);
+}
+
+/* ---------------------------------------------------------------
+ * Comments
+ * --------------------------------------------------------------- */
+$para_comment(
+	$residential_explain,
+	'Regarding residential history, ' . $A . ' noted:'
+);
+$para_comment( $exam_residential_explain, 'Examiner noted:' );
+?>
