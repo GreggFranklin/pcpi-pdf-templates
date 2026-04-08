@@ -260,3 +260,53 @@ foreach ( $form['fields'] as $field ){
 </div>
 
 <?php } ?>
+<hr style="margin-top:30px;">
+
+<div style="font-size:10px; color:#666; margin-top:10px;">
+    <strong>Submission Details</strong><br>
+
+    <?php
+    $ip        = rgar( $entry, 'ip' );
+    $user_agent = rgar( $entry, 'user_agent' );
+    ?>
+
+    IP Address: <?php echo esc_html( $ip ); ?><br>
+
+    <?php if ( $user_agent ) : ?>
+        Device / Browser: <?php echo esc_html( $user_agent ); ?><br>
+    <?php endif; ?>
+
+    Generated: <?php echo esc_html( wp_date( 'F j, Y g:i A' ) ); ?><br>
+    
+    Entry ID: <?php echo absint( rgar( $entry, 'id' ) ); ?><br>
+    <?php 
+    
+    	$start = (int) gform_get_meta( $entry['id'], 'pcpi_form_timer_start' );
+	$end   = strtotime( rgar( $entry, 'date_created' ) );
+
+if ( $start && $end && $end > $start ) {
+
+    $seconds = $end - $start;
+
+    $hours   = floor( $seconds / 3600 );
+    $minutes = floor( ( $seconds % 3600 ) / 60 );
+
+    $parts = [];
+
+    if ( $hours > 0 ) {
+        $parts[] = $hours . ' hour' . ( $hours === 1 ? '' : 's' );
+    }
+
+    if ( $minutes > 0 ) {
+        $parts[] = $minutes . ' min';
+    }
+
+    // Fallback for very short durations
+    if ( empty( $parts ) ) {
+        $parts[] = 'less than 1 min';
+    }
+
+    echo 'Completion Time: ' . esc_html( implode( ' ', $parts ) ) . '<br>';
+}
+	?>
+</div>
