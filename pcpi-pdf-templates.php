@@ -2,13 +2,13 @@
 /**
  * Plugin Name: _PCPI PDF Templates
  * Description: Registers custom Gravity PDF templates for PCPI workflows.
- * Version: 1.0.6
+ * Version: 1.0.7
  * Author: Gregg Franklin, Marc Benzakein
  */
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'PCPI_PDF_TEMPLATES_VERSION', '1.0.6' );
+define( 'PCPI_PDF_TEMPLATES_VERSION', '1.0.7' );
 define( 'PCPI_PDF_TEMPLATES_PATH', plugin_dir_path( __FILE__ ) );
 define( 'PCPI_PDF_TEMPLATES_URL',  plugin_dir_url( __FILE__ ) );
 
