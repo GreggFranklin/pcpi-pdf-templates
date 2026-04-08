@@ -85,7 +85,7 @@ if ( $name_field ) {
 
 <p><strong>Applicant:</strong> <?php echo esc_html( $applicant_name ); ?></p>
 <p><strong>Email:</strong> <?php echo esc_html( rgar( $entry, $email_field->id ) ); ?></p>
-<p><strong>Submitted:</strong> <?php echo esc_html( date( 'F j, Y g:i A', strtotime( rgar($entry,'date_created') ) ) ); ?></p>
+<p><strong>Submitted:</strong> <?php echo esc_html( wp_date( 'F j, Y g:i A', strtotime( rgar( $entry, 'date_created' ) ) ) ); ?></p>
 
 <hr>
 
